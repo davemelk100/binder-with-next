@@ -1,14 +1,17 @@
 "use client";
 
-import { format } from "date-fns";
+import { useState } from "react";
+import { format, addDays, startOfWeek } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScheduleCell } from "./schedule-cell";
 
+// Define time slots
 const timeSlots = Array.from({ length: 14 }, (_, i) => {
   const hour = 8 + i;
   return format(new Date().setHours(hour, 0), "h:mm a");
 });
 
+// Define days of the week
 const days = [
   "Monday",
   "Tuesday",
@@ -19,18 +22,52 @@ const days = [
   "Sunday",
 ];
 
+// Get the start of the current week (Monday as the start)
+const startOfCurrentWeek = startOfWeek(new Date(), { weekStartsOn: 1 });
+
+// Map days to their corresponding dates
+const daysWithDates = days.map((day, index) => {
+  const date = addDays(startOfCurrentWeek, index);
+  const formattedDate = format(date, "MMM dd");
+  return { day, formattedDate };
+});
+
 export function ScheduleTable() {
+  // State to manage rows for each day
+  const [rows, setRows] = useState(
+    daysWithDates.reduce((acc, { day }) => {
+      acc[day] = [1]; // Initialize with one row per day
+      return acc;
+    }, {})
+  );
+
+  // Function to add a row for a specific day
+  const addRow = (day) => {
+    setRows((prev) => ({
+      ...prev,
+      [day]: [...prev[day], prev[day].length + 1], // Add a new row
+    }));
+  };
+
+  // Function to remove a row for a specific day
+  const removeRow = (day, rowId) => {
+    setRows((prev) => ({
+      ...prev,
+      [day]: prev[day].filter((id) => id !== rowId), // Remove the row by ID
+    }));
+  };
+
   return (
     <div className="w-full max-w-[95vw] mx-auto p-4">
-      <Tabs defaultValue={days[0]} className="w-full">
+      <Tabs defaultValue={daysWithDates[0].day} className="w-full">
         <TabsList className="w-full justify-between mb-4">
-          {days.map((day) => (
+          {daysWithDates.map(({ day, formattedDate }) => (
             <TabsTrigger key={day} value={day} className="flex-1">
-              {day}
+              {day} ({formattedDate})
             </TabsTrigger>
           ))}
         </TabsList>
-        {days.map((day) => (
+        {daysWithDates.map(({ day }) => (
           <TabsContent key={day} value={day}>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -44,21 +81,40 @@ export function ScheduleTable() {
                         {time}
                       </th>
                     ))}
+                    <th className="border p-2 bg-muted text-muted-foreground font-medium text-sm">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    {timeSlots.map((time) => (
-                      <td
-                        key={time}
-                        className="border p-2 h-24 align-top hover:bg-muted/50 transition-colors"
-                      >
-                        <ScheduleCell day={day} timeSlot={time} />
+                  {rows[day].map((rowId) => (
+                    <tr key={rowId}>
+                      {timeSlots.map((time) => (
+                        <td
+                          key={time}
+                          className="border p-2 h-24 align-top hover:bg-muted/50 transition-colors"
+                        >
+                          <ScheduleCell day={day} timeSlot={time} />
+                        </td>
+                      ))}
+                      <td className="border p-2 h-24 align-top text-center">
+                        <button
+                          onClick={() => removeRow(day, rowId)}
+                          className="p-1 bg-red-500 text-white rounded"
+                        >
+                          Remove
+                        </button>
                       </td>
-                    ))}
-                  </tr>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
+              <button
+                onClick={() => addRow(day)}
+                className="mt-4 p-2 bg-blue-500 text-white rounded"
+              >
+                Add Row
+              </button>
             </div>
           </TabsContent>
         ))}
