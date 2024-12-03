@@ -2,6 +2,7 @@
 
 import { format } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScheduleCell } from "./schedule-cell";
 
 const timeSlots = Array.from({ length: 14 }, (_, i) => {
   const hour = 8 + i;
@@ -52,7 +53,7 @@ export function ScheduleTable() {
                         key={time}
                         className="border p-2 h-24 align-top hover:bg-muted/50 transition-colors"
                       >
-                        <div className="min-h-[4rem]"></div>
+                        <ScheduleCell day={day} timeSlot={time} />
                       </td>
                     ))}
                   </tr>
