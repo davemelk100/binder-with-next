@@ -1,0 +1,8 @@
+[build]
+publish = "build"  # Replace "build" with the correct directory for your framework
+command = "npm run build"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200
