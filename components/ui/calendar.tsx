@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { DayPicker, DayPickerProps } from 'react-day-picker';
@@ -5,21 +7,22 @@ import { DayPicker, DayPickerProps } from 'react-day-picker';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
-// Extend the components type
+// Define custom components that extend the DayPicker components
 interface CustomComponents {
-  IconLeft?: React.ComponentType<any>;
-  IconRight?: React.ComponentType<any>;
+  IconLeft: React.ComponentType<any>;  // Make IconLeft required for better type inference
+  IconRight: React.ComponentType<any>; // Make IconRight required
 }
 
-// Extend DayPickerProps to include the new components type
+// Update CalendarProps to support custom components for IconLeft and IconRight
 export type CalendarProps = Omit<DayPickerProps, 'components'> & {
-  components?: DayPickerProps['components'] & Partial<CustomComponents>;
+  components?: Partial<CustomComponents>;
 };
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  components, // Destructure components so they can be passed down
   ...props
 }: CalendarProps) {
   return (
@@ -63,11 +66,13 @@ function Calendar({
       components={{
         IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
         IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        ...components, // Allow additional components to be passed via props
       }}
       {...props}
     />
   );
 }
+
 Calendar.displayName = 'Calendar';
 
 export { Calendar };
