@@ -5,8 +5,8 @@ import { format, addDays, startOfWeek } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScheduleCell } from "./schedule-cell";
 
-// Define time slots
-const timeSlots = Array.from({ length: 14 }, (_, i) => {
+// Define initial time slots
+const initialTimeSlots = Array.from({ length: 14 }, (_, i) => {
   const hour = 8 + i;
   return format(new Date().setHours(hour, 0), "h:mm a");
 });
@@ -32,29 +32,46 @@ const daysWithDates = days.map((day, index) => {
   return { day, formattedDate };
 });
 
+// Define the type for rows
+type RowsType = {
+  [key: string]: number[];
+};
+
 export function ScheduleTable() {
   // State to manage rows for each day
-  const [rows, setRows] = useState(
+  const [rows, setRows] = useState<RowsType>(
     daysWithDates.reduce((acc, { day }) => {
       acc[day] = [1]; // Initialize with one row per day
       return acc;
-    }, {})
+    }, {} as RowsType)
   );
 
+  // State to manage time slots
+  const [timeSlots, setTimeSlots] = useState(initialTimeSlots);
+
   // Function to add a row for a specific day
-  const addRow = (day) => {
+  const addRow = (day: string) => {
     setRows((prev) => ({
       ...prev,
       [day]: [...prev[day], prev[day].length + 1], // Add a new row
     }));
   };
 
-  // Function to remove a row for a specific day
-  const removeRow = (day, rowId) => {
+  // Function to delete a row for a specific day
+  const deleteRow = (day: string, rowId: number) => {
     setRows((prev) => ({
       ...prev,
-      [day]: prev[day].filter((id) => id !== rowId), // Remove the row by ID
+      [day]: prev[day].filter((id) => id !== rowId), // Remove the specified row
     }));
+  };
+
+  // Function to edit a time slot
+  const editTimeSlot = (index: number, newTime: string) => {
+    setTimeSlots((prev) => {
+      const updatedSlots = [...prev];
+      updatedSlots[index] = newTime;
+      return updatedSlots;
+    });
   };
 
   return (
@@ -73,17 +90,19 @@ export function ScheduleTable() {
               <table className="w-full border-collapse">
                 <thead>
                   <tr>
-                    {timeSlots.map((time) => (
+                    {timeSlots.map((time, index) => (
                       <th
-                        key={time}
+                        key={index}
                         className="border p-2 bg-muted text-muted-foreground font-medium text-sm"
                       >
-                        {time}
+                        <input
+                          type="text"
+                          value={time}
+                          onChange={(e) => editTimeSlot(index, e.target.value)}
+                          className="w-full p-1 bg-transparent border-b focus:outline-none focus:border-blue-500"
+                        />
                       </th>
                     ))}
-                    <th className="border p-2 bg-muted text-muted-foreground font-medium text-sm">
-                      Actions
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -97,12 +116,13 @@ export function ScheduleTable() {
                           <ScheduleCell day={day} timeSlot={time} />
                         </td>
                       ))}
-                      <td className="border p-2 h-24 align-top text-center">
+                      {/* Delete Row Button */}
+                      <td className="border p-2">
                         <button
-                          onClick={() => removeRow(day, rowId)}
+                          onClick={() => deleteRow(day, rowId)}
                           className="p-1 bg-red-500 text-white rounded"
                         >
-                          Remove
+                          Delete
                         </button>
                       </td>
                     </tr>
