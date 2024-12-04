@@ -1,13 +1,20 @@
-'use client';
-
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { DayPicker } from 'react-day-picker';
+import { DayPicker, DayPickerProps } from 'react-day-picker';
 
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+// Extend the components type
+interface CustomComponents {
+  IconLeft?: React.ComponentType<any>;
+  IconRight?: React.ComponentType<any>;
+}
+
+// Extend DayPickerProps to include the new components type
+export type CalendarProps = Omit<DayPickerProps, 'components'> & {
+  components?: DayPickerProps['components'] & Partial<CustomComponents>;
+};
 
 function Calendar({
   className,
